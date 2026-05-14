@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { CalendarDays, Download } from 'lucide-react';
-import { auth } from '@/../auth';
+import { auth } from '@/auth';
 import {
   getDashboardStats,
   getSalesByDay,
