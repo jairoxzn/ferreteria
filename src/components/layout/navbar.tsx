@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, Search } from 'lucide-react';
+import { Bell, Hammer, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from './theme-toggle';
@@ -19,9 +19,18 @@ interface NavbarProps {
 
 export function Navbar({ user }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur-xl md:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur-xl md:h-16 md:gap-3 md:px-6">
       <MobileSidebar role={user.role} />
 
+      {/* Logo compacto solo móvil */}
+      <div className="flex items-center gap-2 md:hidden">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+          <Hammer className="h-4 w-4" />
+        </div>
+        <span className="text-sm font-bold">Ferretería Pro</span>
+      </div>
+
+      {/* Search bar - solo desktop */}
       <div className="relative hidden flex-1 max-w-xl md:flex">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -34,15 +43,19 @@ export function Navbar({ user }: NavbarProps) {
         </kbd>
       </div>
 
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex items-center gap-0.5 md:gap-1">
+        {/* Búsqueda móvil */}
+        <Button variant="ghost" size="icon" aria-label="Buscar" className="md:hidden">
+          <Search className="h-5 w-5" />
+        </Button>
         <Button variant="ghost" size="icon" aria-label="Notificaciones" className="relative">
           <Bell className="h-5 w-5" />
-          <Badge className="absolute right-1.5 top-1.5 h-4 min-w-4 justify-center rounded-full px-1 text-[10px]">
+          <Badge className="absolute right-1 top-1 h-4 min-w-4 justify-center rounded-full px-1 text-[10px]">
             3
           </Badge>
         </Button>
         <ThemeToggle />
-        <div className="mx-1 h-6 w-px bg-border" />
+        <div className="mx-0.5 hidden h-6 w-px bg-border md:block md:mx-1" />
         <UserMenu user={user} />
       </div>
     </header>

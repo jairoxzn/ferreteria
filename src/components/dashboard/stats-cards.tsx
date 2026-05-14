@@ -64,17 +64,24 @@ export function StatsCards({ stats }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.05 }}
           >
-            <Card className="relative overflow-hidden p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <Card className="relative overflow-hidden p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-2 sm:gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground sm:text-xs">
                     {c.title}
                   </p>
-                  <p className="mt-2 truncate text-2xl font-bold tracking-tight">{c.value}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{c.subtitle}</p>
+                  <p className="mt-1.5 truncate text-xl font-bold tracking-tight sm:mt-2 sm:text-2xl">
+                    {c.value}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{c.subtitle}</p>
                 </div>
-                <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', c.iconBg)}>
-                  <Icon className="h-5 w-5" />
+                <div
+                  className={cn(
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10',
+                    c.iconBg,
+                  )}
+                >
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
               </div>
 

@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           }}
         />
         <main className="scrollbar-thin flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-[1600px] p-4 md:p-6 lg:p-8">{children}</div>
+          <div className="mx-auto w-full max-w-[1600px] p-3 sm:p-4 md:p-6 lg:p-8">{children}</div>
         </main>
       </div>
     </div>

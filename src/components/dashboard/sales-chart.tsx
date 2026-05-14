@@ -21,19 +21,19 @@ export function SalesChart({ data }: Props) {
   const total = data.reduce((acc, d) => acc + d.total, 0);
 
   return (
-    <Card className="col-span-2">
+    <Card className="lg:col-span-2">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-        <div>
-          <CardTitle>Tendencia de ventas</CardTitle>
+        <div className="min-w-0">
+          <CardTitle className="truncate">Tendencia de ventas</CardTitle>
           <CardDescription>Últimos {data.length} días</CardDescription>
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Total acumulado</p>
-          <p className="text-lg font-bold">{formatCurrency(total)}</p>
+          <p className="text-[10px] text-muted-foreground sm:text-xs">Total</p>
+          <p className="text-base font-bold sm:text-lg">{formatCurrency(total)}</p>
         </div>
       </CardHeader>
-      <CardContent className="pl-2">
-        <ResponsiveContainer width="100%" height={280}>
+      <CardContent className="pl-0 pr-2 sm:pl-2">
+        <ResponsiveContainer width="100%" height={260}>
           <AreaChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">

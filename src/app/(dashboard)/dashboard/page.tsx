@@ -90,18 +90,18 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
             Hola, {session?.user.name?.split(' ')[0]} 👋
           </h1>
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-            <CalendarDays className="h-3.5 w-3.5" />
-            <span className="capitalize">{today}</span>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground sm:text-sm">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate capitalize">{today}</span>
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto">
             <Download className="h-4 w-4" />
             Exportar
           </Button>
