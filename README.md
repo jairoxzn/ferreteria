@@ -15,7 +15,7 @@ Sistema profesional de gestión de inventario para ferreterías. Diseñado con t
 - **Gráficas**: Recharts
 - **Iconos**: Lucide React
 - **Notificaciones**: Sonner
-- **Imágenes**: Cloudinary (configurado, listo para usar)
+- **Imágenes**: Almacenamiento local / Vercel Blob (configurable en Fase 2)
 
 ## Instalación
 
@@ -129,7 +129,7 @@ ferreteria/
 - [x] Sistema de tipografía, paleta y tokens
 
 ### 🚧 Fase 2 — Catálogo y Operaciones
-- [ ] CRUD Productos (con Cloudinary)
+- [ ] CRUD Productos (con subida de imágenes)
 - [ ] CRUD Categorías
 - [ ] CRUD Proveedores y Clientes
 - [ ] Inventario: entradas, salidas, kardex
@@ -158,7 +158,6 @@ ferreteria/
    - `AUTH_SECRET` (genera uno nuevo con `openssl rand -base64 32`)
    - `AUTH_TRUST_HOST=true`
    - `NEXTAUTH_URL=https://tu-dominio.vercel.app`
-   - Cloudinary (si se usará)
 4. Vercel ejecutará automáticamente `prisma generate && next build`.
 5. Después del primer deploy, ejecuta una sola vez localmente:
    ```bash

@@ -1,0 +1,363 @@
+// =====================================================
+//  Ferretería Pro - Schema Prisma
+//  PostgreSQL (Neon)
+// =====================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// =====================================================
+//  ENUMS
+// =====================================================
+
+enum Role {
+  ADMIN
+  VENDEDOR
+  ALMACEN
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+}
+
+enum MovementType {
+  IN          // Entrada al almacén
+  OUT         // Salida de almacén
+  ADJUSTMENT  // Ajuste manual
+  SALE        // Venta
+  RETURN      // Devolución
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TARJETA
+  YAPE
+  PLIN
+  TRANSFERENCIA
+}
+
+enum SaleStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum CashRegisterStatus {
+  OPEN
+  CLOSED
+}
+
+enum CashMovementType {
+  INCOME
+  EXPENSE
+}
+
+// =====================================================
+//  USUARIOS
+// =====================================================
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(VENDEDOR)
+  avatar    String?
+  phone     String?
+  active    Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  sales              Sale[]
+  inventoryMovements InventoryMovement[]
+  cashRegisters      CashRegister[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+// =====================================================
+//  CATEGORÍAS
+// =====================================================
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@index([slug])
+  @@map("categories")
+}
+
+// =====================================================
+//  PROVEEDORES
+// =====================================================
+
+model Supplier {
+  id        String   @id @default(cuid())
+  company   String
+  ruc       String   @unique
+  contact   String?
+  email     String?
+  phone     String?
+  address   String?
+  city      String?
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products  Product[]
+  movements InventoryMovement[]
+
+  @@index([ruc])
+  @@index([company])
+  @@map("suppliers")
+}
+
+// =====================================================
+//  CLIENTES
+// =====================================================
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  document  String?  @unique
+  email     String?
+  phone     String?
+  address   String?
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales Sale[]
+
+  @@index([document])
+  @@index([name])
+  @@map("customers")
+}
+
+// =====================================================
+//  PRODUCTOS
+// =====================================================
+
+model Product {
+  id            String        @id @default(cuid())
+  name          String
+  sku           String        @unique
+  qrCode        String?       @unique
+  description   String?
+  image         String?
+  unit          String        @default("UND")
+  brand         String?
+  purchasePrice Decimal       @db.Decimal(10, 2)
+  salePrice     Decimal       @db.Decimal(10, 2)
+  stock         Int           @default(0)
+  minStock      Int           @default(5)
+  maxStock      Int?
+  status        ProductStatus @default(ACTIVE)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  movements   InventoryMovement[]
+  saleDetails SaleDetail[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sku])
+  @@index([name])
+  @@index([categoryId])
+  @@index([supplierId])
+  @@index([status])
+  @@map("products")
+}
+
+// =====================================================
+//  MOVIMIENTOS DE INVENTARIO (KARDEX)
+// =====================================================
+
+model InventoryMovement {
+  id          String       @id @default(cuid())
+  type        MovementType
+  quantity    Int
+  unitCost    Decimal?     @db.Decimal(10, 2)
+  reference   String?
+  notes       String?
+  stockBefore Int
+  stockAfter  Int
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  saleId String?
+  sale   Sale?   @relation(fields: [saleId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("inventory_movements")
+}
+
+// =====================================================
+//  VENTAS
+// =====================================================
+
+model Sale {
+  id             String     @id @default(cuid())
+  code           String     @unique
+  subtotal       Decimal    @db.Decimal(10, 2)
+  taxAmount      Decimal    @default(0) @db.Decimal(10, 2)
+  discountAmount Decimal    @default(0) @db.Decimal(10, 2)
+  total          Decimal    @db.Decimal(10, 2)
+  notes          String?
+  status         SaleStatus @default(COMPLETED)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  cashRegisterId String?
+  cashRegister   CashRegister? @relation(fields: [cashRegisterId], references: [id], onDelete: SetNull)
+
+  details   SaleDetail[]
+  payments  Payment[]
+  movements InventoryMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([createdAt])
+  @@index([userId])
+  @@index([customerId])
+  @@index([status])
+  @@map("sales")
+}
+
+// =====================================================
+//  DETALLE DE VENTAS
+// =====================================================
+
+model SaleDetail {
+  id        String  @id @default(cuid())
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  discount  Decimal @default(0) @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
+
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_details")
+}
+
+// =====================================================
+//  PAGOS
+// =====================================================
+
+model Payment {
+  id        String        @id @default(cuid())
+  method    PaymentMethod
+  amount    Decimal       @db.Decimal(10, 2)
+  reference String?
+
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([saleId])
+  @@index([method])
+  @@map("payments")
+}
+
+// =====================================================
+//  CAJA REGISTRADORA
+// =====================================================
+
+model CashRegister {
+  id             String             @id @default(cuid())
+  code           String             @unique
+  openingAmount  Decimal             @db.Decimal(10, 2)
+  closingAmount  Decimal?            @db.Decimal(10, 2)
+  expectedAmount Decimal?            @db.Decimal(10, 2)
+  difference     Decimal?            @db.Decimal(10, 2)
+  notes          String?
+  status         CashRegisterStatus  @default(OPEN)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  sales     Sale[]
+  movements CashMovement[]
+
+  openedAt DateTime  @default(now())
+  closedAt DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([openedAt])
+  @@map("cash_registers")
+}
+
+// =====================================================
+//  MOVIMIENTOS DE CAJA
+// =====================================================
+
+model CashMovement {
+  id     String           @id @default(cuid())
+  type   CashMovementType
+  amount Decimal          @db.Decimal(10, 2)
+  reason String
+  notes  String?
+
+  cashRegisterId String
+  cashRegister   CashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([cashRegisterId])
+  @@map("cash_movements")
+}
