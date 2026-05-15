@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
+import { MotionProvider } from '@/components/providers/motion-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { APP_NAME } from '@/lib/constants';
 import './globals.css';
@@ -37,10 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <SessionProvider>
-            {children}
-            <Toaster />
-          </SessionProvider>
+          <MotionProvider>
+            <SessionProvider>
+              {children}
+              <Toaster />
+            </SessionProvider>
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

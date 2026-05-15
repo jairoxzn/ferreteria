@@ -137,3 +137,17 @@
     background-size: 8px 8px;
   }
 }
+
+/* WCAG 2.3.3 — Respeta prefers-reduced-motion del sistema operativo
+   Cubre animaciones CSS de Tailwind (tw-animate, transitions). Framer
+   Motion ya está cubierto por MotionConfig reducedMotion="user". */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
