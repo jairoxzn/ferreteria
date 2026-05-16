@@ -13,7 +13,13 @@ const features = [
   { icon: ShieldCheck, label: 'Control de stock', desc: 'Alertas y kardex automático' },
 ];
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const { callbackUrl } = await searchParams;
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Panel visual industrial */}
@@ -91,7 +97,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <LoginForm />
+          <LoginForm callbackUrl={callbackUrl} />
 
           <div className="mt-8 rounded-lg border border-dashed bg-muted/30 p-4">
             <p className="text-xs font-semibold text-muted-foreground">

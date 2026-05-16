@@ -13,10 +13,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-export function LoginForm() {
+export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   const router = useRouter();
   const [showPwd, setShowPwd] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
+
+  // Resuelve un destino seguro: solo paths internos (mismo origen).
+  const resolveRedirect = (): string => {
+    if (!callbackUrl) return '/dashboard';
+    try {
+      if (callbackUrl.startsWith('/')) return callbackUrl;
+      const url = new URL(callbackUrl);
+      if (typeof window !== 'undefined' && url.origin === window.location.origin) {
+        return url.pathname + url.search + url.hash;
+      }
+    } catch {
+      // url inválida
+    }
+    return '/dashboard';
+  };
 
   const {
     register,
@@ -35,8 +50,9 @@ export function LoginForm() {
       const res = await loginAction(fd);
 
       if (res?.ok) {
-        toast.success('Sesión iniciada', { description: 'Redirigiendo al dashboard...' });
-        router.replace('/dashboard');
+        const target = resolveRedirect();
+        toast.success('Sesión iniciada', { description: 'Redirigiendo...' });
+        router.replace(target);
         router.refresh();
       } else {
         toast.error('Error al iniciar sesión', { description: res?.error });
