@@ -1,19 +1,33 @@
-import { PagePlaceholder } from '@/components/layout/page-placeholder';
+import type { Metadata } from 'next';
+import { Settings } from 'lucide-react';
+import { requireRole } from '@/lib/auth-helpers';
+import { getSettings } from '@/actions/settings';
+import { SettingsForm } from '@/components/settings/settings-form';
 
-export const metadata = { title: 'Configuración' };
+export const metadata: Metadata = { title: 'Configuración' };
+export const dynamic = 'force-dynamic';
 
-export default function ConfiguracionPage() {
+export default async function ConfiguracionPage() {
+  await requireRole(['ADMIN']);
+  const settings = await getSettings();
+
   return (
-    <PagePlaceholder
-      title="Configuración"
-      description="Personaliza tu sistema: empresa, impuestos, formatos y preferencias."
-      features={[
-        'Datos de la empresa (logo, RUC, dirección)',
-        'Configuración de IGV y moneda',
-        'Formatos de boleta y ticket',
-        'Numeración correlativa',
-        'Integraciones y APIs externas',
-      ]}
-    />
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+          <Settings className="h-5 w-5" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
+            Configuración
+          </h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">
+            Personaliza los datos de tu empresa y comprobantes
+          </p>
+        </div>
+      </div>
+
+      <SettingsForm initial={settings} />
+    </div>
   );
 }

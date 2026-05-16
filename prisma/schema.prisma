@@ -361,3 +361,24 @@ model CashMovement {
   @@index([cashRegisterId])
   @@map("cash_movements")
 }
+
+// =====================================================
+//  CONFIGURACIÓN GLOBAL (Singleton)
+// =====================================================
+
+model Settings {
+  id           String   @id @default("default")
+  companyName  String?
+  ruc          String?
+  address      String?
+  phone        String?
+  email        String?
+  logo         String?
+  igv          Decimal  @default(0.18) @db.Decimal(5, 4)
+  currency     String   @default("PEN")
+  ticketHeader String?
+  ticketFooter String?
+  updatedAt    DateTime @updatedAt
+
+  @@map("settings")
+}
