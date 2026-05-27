@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/auth-helpers';
 import { categorySchema, slugify, type CategoryInput } from '@/lib/validations/category';
@@ -23,7 +24,7 @@ export interface CategoryRow {
 }
 
 export async function getCategories(): Promise<CategoryRow[]> {
-  await requireRole(['ADMIN', 'VENDEDOR', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'VENDEDOR', 'ALMACEN']);
   const rows = await prisma.category.findMany({
     orderBy: { name: 'asc' },
     include: { _count: { select: { products: true } } },
@@ -42,7 +43,7 @@ export async function getCategories(): Promise<CategoryRow[]> {
 }
 
 export async function createCategory(input: CategoryInput): Promise<ActionResult<{ id: string }>> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const parsed = categorySchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -79,7 +80,7 @@ export async function updateCategory(
   id: string,
   input: CategoryInput,
 ): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const parsed = categorySchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -102,7 +103,7 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(id: string): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   try {
     const used = await prisma.product.count({ where: { categoryId: id } });
     if (used > 0) {
@@ -120,7 +121,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
 }
 
 export async function toggleCategoryActive(id: string): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   try {
     const cat = await prisma.category.findUnique({ where: { id }, select: { active: true } });
     if (!cat) return { ok: false, error: 'Categoría no encontrada' };

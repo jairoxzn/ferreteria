@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, requireRole } from '@/lib/auth-helpers';
 import { customerSchema, type CustomerInput } from '@/lib/validations/customer';
@@ -22,7 +23,7 @@ export interface CustomerRow {
 }
 
 export async function getCustomers(): Promise<CustomerRow[]> {
-  await requireAuth();
+  requireAuth(await auth());
   const rows = await prisma.customer.findMany({
     orderBy: { name: 'asc' },
     include: {
@@ -46,7 +47,7 @@ export async function getCustomers(): Promise<CustomerRow[]> {
 }
 
 export async function getActiveCustomers() {
-  await requireAuth();
+  requireAuth(await auth());
   return prisma.customer.findMany({
     where: { active: true },
     select: { id: true, name: true, document: true },
@@ -57,7 +58,7 @@ export async function getActiveCustomers() {
 export async function createCustomer(
   input: CustomerInput,
 ): Promise<ActionResult<{ id: string; name: string }>> {
-  await requireRole(['ADMIN', 'VENDEDOR']);
+  requireRole(await auth(), ['ADMIN', 'VENDEDOR']);
   const parsed = customerSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -84,7 +85,7 @@ export async function createCustomer(
 }
 
 export async function updateCustomer(id: string, input: CustomerInput): Promise<ActionResult> {
-  await requireRole(['ADMIN', 'VENDEDOR']);
+  requireRole(await auth(), ['ADMIN', 'VENDEDOR']);
   const parsed = customerSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -111,7 +112,7 @@ export async function updateCustomer(id: string, input: CustomerInput): Promise<
 }
 
 export async function deleteCustomer(id: string): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   try {
     const sales = await prisma.sale.count({ where: { customerId: id } });
     if (sales > 0) {

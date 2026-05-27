@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { BarChart3 } from 'lucide-react';
+import { auth } from '@/auth';
 import { requireRole } from '@/lib/auth-helpers';
 import { getStockReport } from '@/actions/reports';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: 'Reportes' };
 export const dynamic = 'force-dynamic';
 
 export default async function ReportesPage() {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const stockData = await getStockReport();
 
   return (

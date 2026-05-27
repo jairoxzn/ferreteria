@@ -8,6 +8,7 @@ import {
   Prisma,
   SaleStatus,
 } from '@prisma/client';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, requireRole } from '@/lib/auth-helpers';
 import { generateSaleCode } from '@/lib/utils';
@@ -30,7 +31,7 @@ export interface SaleListRow {
 }
 
 export async function getRecentSales(limit = 50): Promise<SaleListRow[]> {
-  await requireAuth();
+  requireAuth(await auth());
   const rows = await prisma.sale.findMany({
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -81,7 +82,7 @@ export interface SaleTicket {
 }
 
 export async function getSaleTicket(id: string): Promise<SaleTicket | null> {
-  await requireAuth();
+  requireAuth(await auth());
   const s = await prisma.sale.findUnique({
     where: { id },
     include: {
@@ -121,7 +122,7 @@ export async function getSaleTicket(id: string): Promise<SaleTicket | null> {
 }
 
 export async function createSale(input: SaleInput): Promise<ActionResult<{ id: string; code: string }>> {
-  const session = await requireRole(['ADMIN', 'VENDEDOR']);
+  const session = requireRole(await auth(), ['ADMIN', 'VENDEDOR']);
   const parsed = saleSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 

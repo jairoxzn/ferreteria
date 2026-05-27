@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Warehouse, Package2, AlertTriangle, XCircle, DollarSign } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getMovements, getInventoryStats } from '@/actions/inventory';
+import { auth } from '@/auth';
 import { requireAuth } from '@/lib/auth-helpers';
 import { InventoryClient } from '@/components/inventory/inventory-client';
 import { Card } from '@/components/ui/card';
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: 'Inventario' };
 export const dynamic = 'force-dynamic';
 
 export default async function InventarioPage() {
-  await requireAuth();
+  requireAuth(await auth());
 
   const [movements, stats, products, suppliers] = await Promise.all([
     getMovements({ limit: 300 }),

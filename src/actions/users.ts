@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
 import { Prisma, Role } from '@prisma/client';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/auth-helpers';
 import {
@@ -28,7 +29,7 @@ export interface UserRow {
 }
 
 export async function getUsers(): Promise<UserRow[]> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const rows = await prisma.user.findMany({
     orderBy: [{ active: 'desc' }, { name: 'asc' }],
     select: {
@@ -47,7 +48,7 @@ export async function getUsers(): Promise<UserRow[]> {
 }
 
 export async function createUser(input: CreateUserInput): Promise<ActionResult<{ id: string }>> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const parsed = createUserSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -74,7 +75,7 @@ export async function createUser(input: CreateUserInput): Promise<ActionResult<{
 }
 
 export async function updateUser(id: string, input: UpdateUserInput): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const parsed = updateUserSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -103,7 +104,7 @@ export async function updateUser(id: string, input: UpdateUserInput): Promise<Ac
 }
 
 export async function resetPassword(id: string, input: PasswordResetInput): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const parsed = passwordResetSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -117,7 +118,7 @@ export async function resetPassword(id: string, input: PasswordResetInput): Prom
 }
 
 export async function toggleUserActive(id: string): Promise<ActionResult> {
-  const session = await requireRole(['ADMIN']);
+  const session = requireRole(await auth(), ['ADMIN']);
   if (session.user.id === id) {
     return { ok: false, error: 'No puedes desactivarte a ti mismo' };
   }

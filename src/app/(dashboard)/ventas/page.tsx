@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ShoppingCart } from 'lucide-react';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/auth-helpers';
 import { getCurrentCashRegister } from '@/actions/cash';
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: 'Ventas POS' };
 export const dynamic = 'force-dynamic';
 
 export default async function VentasPage() {
-  await requireRole(['ADMIN', 'VENDEDOR']);
+  requireRole(await auth(), ['ADMIN', 'VENDEDOR']);
   const cash = await getCurrentCashRegister();
 
   if (!cash) {

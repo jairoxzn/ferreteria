@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { MovementType, Prisma } from '@prisma/client';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, requireRole } from '@/lib/auth-helpers';
 import {
@@ -40,7 +41,7 @@ export async function getMovements({
   type,
   limit = 200,
 }: GetMovementsArgs = {}): Promise<MovementRow[]> {
-  await requireAuth();
+  requireAuth(await auth());
   const rows = await prisma.inventoryMovement.findMany({
     where: { productId, type },
     orderBy: { createdAt: 'desc' },
@@ -78,7 +79,7 @@ export interface InventoryStats {
 }
 
 export async function getInventoryStats(): Promise<InventoryStats> {
-  await requireAuth();
+  requireAuth(await auth());
 
   const [allProducts, lowStock, outOfStock] = await Promise.all([
     prisma.product.findMany({
@@ -108,7 +109,7 @@ export async function getInventoryStats(): Promise<InventoryStats> {
 }
 
 export async function createMovement(input: MovementInput): Promise<ActionResult> {
-  const session = await requireRole(['ADMIN', 'ALMACEN']);
+  const session = requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   const parsed = movementSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -170,7 +171,7 @@ export async function createMovement(input: MovementInput): Promise<ActionResult
 }
 
 export async function createAdjustment(input: AdjustmentInput): Promise<ActionResult> {
-  const session = await requireRole(['ADMIN', 'ALMACEN']);
+  const session = requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   const parsed = adjustmentSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 

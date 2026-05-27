@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { UserCog } from 'lucide-react';
+import { auth } from '@/auth';
 import { requireRole } from '@/lib/auth-helpers';
 import { getUsers } from '@/actions/users';
 import { UsersClient } from '@/components/users/users-client';
@@ -8,7 +9,7 @@ export const metadata: Metadata = { title: 'Usuarios' };
 export const dynamic = 'force-dynamic';
 
 export default async function UsuariosPage() {
-  const session = await requireRole(['ADMIN']);
+  const session = requireRole(await auth(), ['ADMIN']);
   const data = await getUsers();
 
   return (

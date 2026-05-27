@@ -7,6 +7,7 @@ import {
   PaymentMethod,
   Prisma,
 } from '@prisma/client';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, requireRole } from '@/lib/auth-helpers';
 import { generateCashCode } from '@/lib/utils';
@@ -44,7 +45,7 @@ export interface CurrentCashRegister {
 }
 
 export async function getCurrentCashRegister(): Promise<CurrentCashRegister | null> {
-  const session = await requireAuth();
+  const session = requireAuth(await auth());
   const cash = await prisma.cashRegister.findFirst({
     where: { userId: session.user.id, status: CashRegisterStatus.OPEN },
     include: {
@@ -98,7 +99,7 @@ export async function getCurrentCashRegister(): Promise<CurrentCashRegister | nu
 export async function openCashRegister(
   input: OpenCashInput,
 ): Promise<ActionResult<{ id: string }>> {
-  const session = await requireRole(['ADMIN', 'VENDEDOR']);
+  const session = requireRole(await auth(), ['ADMIN', 'VENDEDOR']);
   const parsed = openCashSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -129,7 +130,7 @@ export async function openCashRegister(
 }
 
 export async function closeCashRegister(input: CloseCashInput): Promise<ActionResult> {
-  await requireRole(['ADMIN', 'VENDEDOR']);
+  requireRole(await auth(), ['ADMIN', 'VENDEDOR']);
   const parsed = closeCashSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -160,7 +161,7 @@ export async function closeCashRegister(input: CloseCashInput): Promise<ActionRe
 }
 
 export async function addCashMovement(input: CashMovementInput): Promise<ActionResult> {
-  await requireRole(['ADMIN', 'VENDEDOR']);
+  requireRole(await auth(), ['ADMIN', 'VENDEDOR']);
   const parsed = cashMovementSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 

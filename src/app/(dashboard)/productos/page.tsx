@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Package } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { getProducts } from '@/actions/products';
+import { auth } from '@/auth';
 import { requireAuth } from '@/lib/auth-helpers';
 import { ProductsClient } from '@/components/products/products-client';
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = { title: 'Productos' };
 export const dynamic = 'force-dynamic';
 
 export default async function ProductosPage() {
-  await requireAuth();
+  requireAuth(await auth());
 
   const [data, categories, suppliers] = await Promise.all([
     getProducts(),

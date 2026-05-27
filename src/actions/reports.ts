@@ -1,6 +1,7 @@
 'use server';
 
 import { PaymentMethod, SaleStatus } from '@prisma/client';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/auth-helpers';
 
@@ -62,7 +63,7 @@ export async function getSalesByDayReport(
   fromStr: string,
   toStr: string,
 ): Promise<SalesByDayReport[]> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const from = parseDate(fromStr);
   const to = parseDate(toStr);
   to.setHours(23, 59, 59, 999);
@@ -100,7 +101,7 @@ export async function getSalesSummary(
   fromStr: string,
   toStr: string,
 ): Promise<SalesSummary> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const from = parseDate(fromStr);
   const to = parseDate(toStr);
   to.setHours(23, 59, 59, 999);
@@ -146,7 +147,7 @@ export async function getTopProductsReport(
   toStr: string,
   limit = 20,
 ): Promise<TopProductReport[]> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const from = parseDate(fromStr);
   const to = parseDate(toStr);
   to.setHours(23, 59, 59, 999);
@@ -184,7 +185,7 @@ export async function getTopProductsReport(
 }
 
 export async function getStockReport(): Promise<StockReportRow[]> {
-  await requireRole(['ADMIN', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   const products = await prisma.product.findMany({
     orderBy: [{ stock: 'asc' }, { name: 'asc' }],
     include: { category: { select: { name: true } } },
@@ -214,7 +215,7 @@ export async function getSalesByPaymentMethod(
   fromStr: string,
   toStr: string,
 ): Promise<SalesByMethodReport[]> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const from = parseDate(fromStr);
   const to = parseDate(toStr);
   to.setHours(23, 59, 59, 999);

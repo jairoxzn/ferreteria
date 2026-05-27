@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Settings } from 'lucide-react';
+import { auth } from '@/auth';
 import { requireRole } from '@/lib/auth-helpers';
 import { getSettings } from '@/actions/settings';
 import { SettingsForm } from '@/components/settings/settings-form';
@@ -8,7 +9,7 @@ export const metadata: Metadata = { title: 'Configuración' };
 export const dynamic = 'force-dynamic';
 
 export default async function ConfiguracionPage() {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   const settings = await getSettings();
 
   return (

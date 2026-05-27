@@ -1,5 +1,6 @@
 'use server';
 
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth-helpers';
 import { MovementType, SaleStatus } from '@prisma/client';
@@ -57,7 +58,7 @@ const startOfPrevMonth = (d = new Date()) => new Date(d.getFullYear(), d.getMont
 const endOfPrevMonth = (d = new Date()) => new Date(d.getFullYear(), d.getMonth(), 0, 23, 59, 59, 999);
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  await requireAuth();
+  requireAuth(await auth());
   const now = new Date();
   const today = startOfDay(now);
   const tomorrow = endOfDay(now);
@@ -114,7 +115,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 export async function getSalesByDay(days = 14): Promise<SalesByDay[]> {
-  await requireAuth();
+  requireAuth(await auth());
   const since = startOfDay(new Date(Date.now() - days * 86400000));
 
   const rows = await prisma.$queryRaw<Array<{ date: Date; total: number; count: bigint }>>`
@@ -145,7 +146,7 @@ export async function getSalesByDay(days = 14): Promise<SalesByDay[]> {
 }
 
 export async function getTopProducts(limit = 5): Promise<TopProduct[]> {
-  await requireAuth();
+  requireAuth(await auth());
   const rows = await prisma.saleDetail.groupBy({
     by: ['productId'],
     _sum: { quantity: true, subtotal: true },
@@ -171,7 +172,7 @@ export async function getTopProducts(limit = 5): Promise<TopProduct[]> {
 }
 
 export async function getLowStockProducts(limit = 6): Promise<LowStockProduct[]> {
-  await requireAuth();
+  requireAuth(await auth());
   return prisma.$queryRaw<LowStockProduct[]>`
     SELECT id, name, sku, stock, "minStock"
     FROM products
@@ -182,7 +183,7 @@ export async function getLowStockProducts(limit = 6): Promise<LowStockProduct[]>
 }
 
 export async function getRecentMovements(limit = 8): Promise<RecentMovement[]> {
-  await requireAuth();
+  requireAuth(await auth());
   const rows = await prisma.inventoryMovement.findMany({
     take: limit,
     orderBy: { createdAt: 'desc' },

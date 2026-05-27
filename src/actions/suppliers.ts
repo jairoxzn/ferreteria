@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/auth-helpers';
 import { supplierSchema, type SupplierInput } from '@/lib/validations/supplier';
@@ -23,7 +24,7 @@ export interface SupplierRow {
 }
 
 export async function getSuppliers(): Promise<SupplierRow[]> {
-  await requireRole(['ADMIN', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   const rows = await prisma.supplier.findMany({
     orderBy: { company: 'asc' },
     include: { _count: { select: { products: true } } },
@@ -45,7 +46,7 @@ export async function getSuppliers(): Promise<SupplierRow[]> {
 }
 
 export async function getActiveSuppliersList() {
-  await requireRole(['ADMIN', 'VENDEDOR', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'VENDEDOR', 'ALMACEN']);
   return prisma.supplier.findMany({
     where: { active: true },
     select: { id: true, company: true, ruc: true },
@@ -54,7 +55,7 @@ export async function getActiveSuppliersList() {
 }
 
 export async function createSupplier(input: SupplierInput): Promise<ActionResult<{ id: string }>> {
-  await requireRole(['ADMIN', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   const parsed = supplierSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -83,7 +84,7 @@ export async function createSupplier(input: SupplierInput): Promise<ActionResult
 }
 
 export async function updateSupplier(id: string, input: SupplierInput): Promise<ActionResult> {
-  await requireRole(['ADMIN', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   const parsed = supplierSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -113,7 +114,7 @@ export async function updateSupplier(id: string, input: SupplierInput): Promise<
 }
 
 export async function deleteSupplier(id: string): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   try {
     const used = await prisma.product.count({ where: { supplierId: id } });
     if (used > 0) {
@@ -131,7 +132,7 @@ export async function deleteSupplier(id: string): Promise<ActionResult> {
 }
 
 export async function toggleSupplierActive(id: string): Promise<ActionResult> {
-  await requireRole(['ADMIN', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   try {
     const s = await prisma.supplier.findUnique({ where: { id }, select: { active: true } });
     if (!s) return { ok: false, error: 'Proveedor no encontrado' };

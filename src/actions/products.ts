@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { Prisma, ProductStatus } from '@prisma/client';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, requireRole } from '@/lib/auth-helpers';
 import { productSchema, type ProductInput } from '@/lib/validations/product';
@@ -28,7 +29,7 @@ export interface ProductRow {
 }
 
 export async function getProducts(): Promise<ProductRow[]> {
-  await requireAuth();
+  requireAuth(await auth());
   const rows = await prisma.product.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
@@ -58,7 +59,7 @@ export async function getProducts(): Promise<ProductRow[]> {
 }
 
 export async function generateNextSku(categoryId?: string): Promise<string> {
-  await requireAuth();
+  requireAuth(await auth());
   let prefix = 'PROD';
   if (categoryId) {
     const cat = await prisma.category.findUnique({
@@ -91,7 +92,7 @@ export async function generateNextSku(categoryId?: string): Promise<string> {
 }
 
 export async function createProduct(input: ProductInput): Promise<ActionResult<{ id: string }>> {
-  await requireRole(['ADMIN', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   const parsed = productSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -125,7 +126,7 @@ export async function createProduct(input: ProductInput): Promise<ActionResult<{
 }
 
 export async function updateProduct(id: string, input: ProductInput): Promise<ActionResult> {
-  await requireRole(['ADMIN', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   const parsed = productSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? 'Inválido' };
 
@@ -160,7 +161,7 @@ export async function updateProduct(id: string, input: ProductInput): Promise<Ac
 }
 
 export async function deleteProduct(id: string): Promise<ActionResult> {
-  await requireRole(['ADMIN']);
+  requireRole(await auth(), ['ADMIN']);
   try {
     const inSales = await prisma.saleDetail.count({ where: { productId: id } });
     if (inSales > 0) {
@@ -182,7 +183,7 @@ export async function toggleProductStatus(
   id: string,
   status: ProductStatus,
 ): Promise<ActionResult> {
-  await requireRole(['ADMIN', 'ALMACEN']);
+  requireRole(await auth(), ['ADMIN', 'ALMACEN']);
   try {
     await prisma.product.update({ where: { id }, data: { status } });
     revalidatePath('/productos');
