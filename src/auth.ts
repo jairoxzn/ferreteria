@@ -7,6 +7,8 @@ import { loginSchema } from '@/lib/validations/auth';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
+  secret: process.env.AUTH_SECRET || 'cambia-esto-en-produccion-usa-openssl-rand-base64-32',
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {
